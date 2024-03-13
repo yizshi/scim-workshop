@@ -210,7 +210,7 @@ class SCIMClient:
         else:
             request_data = None
         response = requests.request(
-            method=method, url=url, headers=self.request_headers(), data=request_data
+            method=method, url=url, headers=self.request_headers(), data=request_data, params=params,
         )
 
         if not response.ok:
