@@ -2,11 +2,27 @@
 import json
 import jsonschema
 from typing import Iterable, OrderedDict, Optional, TypeAlias, Mapping, List, TypeVar
-from dataclasses import dataclass
-from sync_app.scim.resource import Resource
+from dataclasses import dataclass, asdict
+from sync_app.scim.resource import Resource, ResourceWithMeta, ResourceMeta
 
 COMMON_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Common"
+SCHEMAS_RESOUCE_TYPE = "Schema"
+SCHEMAS_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Schema"
 
+@dataclass
+class Attributes:
+    name: Optional[str] = None
+    description: Optional[str] = None
+    type: Optional[bool] = None
+    mutability: Optional[str] = None
+    returned: Optional[str] = None
+    uniqueness: Optional[str] = None
+    required: Optional[bool] = False
+    multiValued: Optional[bool] = False
+    caseExact: Optional[bool] = False
+    subAttributes: Optional[List["Attributes"]] = None
+    referenceTypes: Optional[List[str]] = None
+    canonicalValues: Optional[List[str]] = None
 
 class JSONSchema:
     schema: Mapping
@@ -111,3 +127,60 @@ class ResourceValidator:
                 errors.append(e)
 
         return ValidatorResult(len(errors) == 0, errors)
+
+
+class Schemas(ResourceWithMeta):
+    name: str
+    description: Optional[str] = None
+    attributes: Optional[Iterable[Attributes]] = None
+    sub_attributes: Optional[Iterable[Iterable[Attributes]]] = None
+
+    def __init__(
+        self,
+        meta: ResourceMeta,
+        name: str,
+        description: Optional[str] = None,
+        attributes: Optional[Iterable[Attributes]] = None,
+        sub_attributes: Optional[Iterable[Iterable[Attributes]]] = None,
+    ):
+        super().__init__([SCHEMAS_SCHEMA], meta, name)
+        self.name = name
+        self.description = description
+        self.attributes = attributes
+        self.sub_attributes = sub_attributes
+
+    @staticmethod
+    def from_dict(resource: Mapping) -> "Schemas":
+        assert resource["meta"]["resourceType"] == SCHEMAS_RESOUCE_TYPE
+
+        if "attributes" in resource:
+            attributes = [Attributes(**a) for a in resource["attributes"]]
+        else:
+            attributes = []
+
+        for attribute in attributes:
+            if attribute.subAttributes:
+                sub_attributes = [Attributes(**sa) for sa in attribute.subAttributes]
+
+        return Schemas(
+            meta=ResourceMeta(**resource["meta"]),
+            name=resource["name"],
+            description=resource.get("description", None),
+            attributes=attributes,
+            sub_attributes=sub_attributes,
+        )
+
+    def to_dict(self):
+        resource_common = super().to_dict()
+        result = {
+            **resource_common,
+            "name": self.name,
+        }
+        if self.description is not None:
+            result.update({"description": self.description})
+        if self.attributes is not None:
+            result.update({"attributes": [asdict(a) for a in self.attributes]})
+        if self.sub_attributes is not None:
+            result.update({"sub_attributes": [asdict(sa) for sa in self.sub_attributes]})
+
+        return result
