@@ -4,6 +4,7 @@ from sync_app.scim.user import User
 from sync_app.scim.group import Group
 from sync_app.scim.patchop import PatchOp
 from sync_app.scim.list_response import ListResponse
+from sync_app.schema import Schemas
 from dataclasses import dataclass
 from sync_app.parsers.python_filter import PythonFilter
 import requests
@@ -196,6 +197,26 @@ class SCIMClient:
 
     def _delete_resource(self, endpoint: str):
         return self._request("delete", endpoint)
+
+    def get_schemas(self, endpoint: str):
+        list_response = self._request("get", endpoint)
+        raw_list_schema = list_response.json()
+        return ListResponse.from_dict(raw_list_schema, Schemas)
+
+    def get_full_schemas(self):
+        list_response = self._request("get", "/Schemas")
+        raw_list_schema = list_response.json()
+        return ListResponse.from_dict(raw_list_schema, Schemas)
+
+    def get_user_schemas(self):
+        list_response = self._request("get", "/Schemas/urn:ietf:params:scim:schemas:core:2.0:User")
+        raw_schema = list_response.json()
+        return Schemas.from_dict(raw_schema)
+
+    def get_group_schemas(self):
+        list_response = self._request("get", "/Schemas/urn:ietf:params:scim:schemas:core:2.0:Group")
+        raw_schema = list_response.json()
+        return Schemas.from_dict(raw_schema)
 
     def _request(
         self,
