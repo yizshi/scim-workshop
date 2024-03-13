@@ -8,3 +8,4 @@ mypy==1.8.0
 types-jsonschema==4.21.0.20240118
 types-requests==2.31.0
 toml==0.10.2
+jupyter==1.0.0
