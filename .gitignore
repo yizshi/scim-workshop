@@ -3,3 +3,4 @@ env
 __pycache__/
 .direnv
 configuration.toml
+.ipynb_checkpoints/
