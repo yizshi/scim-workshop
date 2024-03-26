@@ -8,6 +8,13 @@ This project is part of a learning exercise.
 ## Environment
 There are a couple ways to set up this workshop.
 
+### Python requirement
+This workshop works with python 3.10+
+This repo also has `.python-version` file that works with pyenv.
+
+If you are not familiar with pyenv, learn more about pyenv [here](https://github.com/pyenv/pyenv)
+
+
 ### Virtual Environment
 If you prefer venv, you could set up with `requirements.txt`
 While using virtual enviroment, you need to start jupyter notebook from the venv python module.
